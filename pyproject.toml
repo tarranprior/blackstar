@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "blackstar"
+version = "0.1.0"
+description = "An asynchronous and lightweight OSINT tool which searches for usernames across common social networking platforms."
+authors = ["Tarran Prior <Tarranprior@protonmail.com>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+argparse = "^1.4.0"
+asyncio = "^3.4.3"
+aiohttp = "^3.9.3"
+colorama = "^0.4.6"
+bs4 = "^0.0.2"
+
+[tool.poetry.group.dev.dependencies]
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
