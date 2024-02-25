@@ -18,11 +18,13 @@ G = Fore.LIGHTGREEN_EX
 R = Fore.LIGHTRED_EX
 W = Fore.WHITE
 Y = Fore.LIGHTYELLOW_EX
+init()
 
 
 async def search_username(
     username: str, timeout: int, show_all: bool
 ) -> None:
+
     timeout = aiohttp.ClientTimeout(total=timeout)
     start_time = datetime.datetime.now()
 
@@ -32,6 +34,7 @@ async def search_username(
 
     async with aiohttp.ClientSession(timeout=timeout) as session:
         tasks = []
+        success_count = 0
         for site in SITEDATA["all_sites"]:
             task = asyncio.ensure_future(
                 make_request(session, site, username, show_all)
@@ -53,7 +56,9 @@ async def search_username(
     }
 
     for i in results:
-        json_results['results'].append(i)
+        json_results['results'].append(i[0])
+        if i[1]:
+            success_count += 1
 
     with open(
         os.path.join(os.path.dirname(__file__), "results",
@@ -61,14 +66,17 @@ async def search_username(
     ) as f:
         json.dump(json_results, f, indent=4, ensure_ascii=False)
 
-    print(f"\n{W}[{Y}*{W}]{Y} "
-        + f"Search complete in {W}{(total_duration)}{Y} seconds. "
+    print(f"\n{W}[{G}+{W}]{G} "
+        + f"{success_count} total user profiles.")
+    print(f"{W}[{Y}*{W}]{Y} "
+        + f"Search complete in {W}{(total_duration)}s{Y}. "
         + f"Results written to {W}'results/{username}.json'{Y}.\n")
 
 
 async def make_request(
     session, site: str, username: str, show_all: bool
-) -> dict:
+) -> tuple:
+
     url = site["url"].format(username=username)
     headers = {"User-Agent": random.choice(USERAGENTS)}
 
@@ -89,7 +97,7 @@ async def make_request(
                     "url": site["url"].format(username=username),
                     "response_status": f"{response.status} {response.reason}",
                     "success": True,
-                }
+                }, True
 
             else:
                 if show_all:
@@ -103,7 +111,7 @@ async def make_request(
                     "url": site["url"].format(username=username),
                     "response_status": f"{response.status} {response.reason}",
                     "success": False,
-                }
+                }, False
 
     except TimeoutError:
         if show_all:
@@ -117,23 +125,21 @@ async def make_request(
             "url": site["url"].format(username=username),
             "response_status": "Timeout",
             "success": False,
-        }
+        }, False
 
 
 if __name__ == "__main__":
 
     print("""
-                          ______  _              _                            
-             ,d8         (____  \| |            | |           _               
-          ,d888" ,d       ____)  ) | _____  ____| |  _  ___ _| |_ _____  ____ 
-      888888888,d88      |  __  (| |(____ |/ ___) |_/ )/___|_   _|____ |/ ___)
- =888888888888888K       | |__)  ) |/ ___ ( (___|  _ (|___ | | |_/ ___ | |    
-      888888888"Y88      |______/ \_)_____|\____)_| \_|___/   \__)_____|_|    
-          "Y888, "Y      An open-source intelligence tool for blazing-fast
-             "Y8         username enumeration.
+             ,d8          ______  _              _                            
+          ,d888" ,d      (____  \| |            | |           _               
+      888888888,d88       ____)  ) | _____  ____| |  _  ___ _| |_ _____  ____ 
+ =888888888888888K       |  __  (| |(____ |/ ___) |_/ )/___|_   _|____ |/ ___)
+      888888888"Y88      | |__)  ) |/ ___ ( (___|  _ (|___ | | |_/ ___ | |
+          "Y888, "Y      |______/ \_)_____|\____)_| \_|___/   \__)_____|_|
+             "Y8         
           """)
 
-    init()
     parser = argparse.ArgumentParser(
         description="""
         An asynchronous and lightweight open-source intelligence tool
